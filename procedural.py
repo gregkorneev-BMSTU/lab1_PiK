@@ -1,64 +1,51 @@
-"""Решение биквадратного уравнения в процедурном стиле."""
+"""Процедурное решение биквадратного уравнения."""
 
 import math
 import sys
 
 
-def read_coefficient(name, value=None):
-    """Возвращает вещественный коэффициент, повторяя ввод при ошибке."""
+def number(name, argument=None):
     while True:
-        raw = value if value is not None else input(f"Введите {name}: ")
         try:
-            return float(raw)
-        except (TypeError, ValueError):
-            print(f"{raw!r} не является вещественным числом.")
-            value = None
-
-
-def roots_from_y(values):
-    roots = []
-    for y in values:
-        if y == 0:
-            roots.append(0.0)
-        elif y > 0:
-            root = math.sqrt(y)
-            roots.extend((-root, root))
-    return tuple(sorted(set(roots)))
+            return float(argument if argument is not None else input(f"{name} = "))
+        except ValueError:
+            print("Введите число.")
+            argument = None
 
 
 def solve(a, b, c):
-    """Возвращает дискриминант и действительные корни A*x**4+B*x**2+C=0."""
-    discriminant = b * b - 4 * a * c
+    d = b * b - 4 * a * c
     if a == 0:
         if b == 0:
-            return discriminant, None if c == 0 else ()
-        return discriminant, roots_from_y((-c / b,))
-    if discriminant < 0:
-        return discriminant, ()
-    if discriminant == 0:
-        return discriminant, roots_from_y((-b / (2 * a),))
-    root_d = math.sqrt(discriminant)
-    return discriminant, roots_from_y(((-b - root_d) / (2 * a),
-                                        (-b + root_d) / (2 * a)))
-
-
-def print_answer(discriminant, roots):
-    print(f"Дискриминант: {discriminant:g}")
-    if roots is None:
-        print("Уравнение верно при любом действительном x.")
-    elif roots:
-        print("Действительные корни:", ", ".join(f"{root:g}" for root in roots))
+            return d, None if c == 0 else ()
+        ys = (-c / b,)
+    elif d < 0:
+        return d, ()
+    elif d == 0:
+        ys = (-b / (2 * a),)
     else:
-        print("Действительных корней нет.")
+        ys = ((-b - math.sqrt(d)) / (2 * a),
+              (-b + math.sqrt(d)) / (2 * a))
 
-
-def main(arguments=None):
-    arguments = sys.argv[1:] if arguments is None else arguments
-    values = list(arguments[:3]) + [None] * 3
-    coefficients = [read_coefficient(name, value)
-                    for name, value in zip("ABC", values)]
-    print_answer(*solve(*coefficients))
+    roots = []
+    for y in ys:
+        if y == 0:
+            roots.append(0)
+        elif y > 0:
+            roots += [-math.sqrt(y), math.sqrt(y)]
+    return d, tuple(sorted(set(roots)))
 
 
 if __name__ == "__main__":
-    main()
+    args = sys.argv[1:]
+    a = number("A", args[0] if len(args) > 0 else None)
+    b = number("B", args[1] if len(args) > 1 else None)
+    c = number("C", args[2] if len(args) > 2 else None)
+    d, roots = solve(a, b, c)
+    print(f"Дискриминант: {d:g}")
+    if roots is None:
+        print("Подходит любое действительное x")
+    elif roots:
+        print("Корни:", *[f"{x:g}" for x in roots])
+    else:
+        print("Действительных корней нет")
